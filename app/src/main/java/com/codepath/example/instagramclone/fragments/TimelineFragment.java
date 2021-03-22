@@ -13,12 +13,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.codepath.example.instagramclone.CustomEndlessRecyclerViewScroll;
 import com.codepath.example.instagramclone.Post;
 import com.codepath.example.instagramclone.R;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -26,7 +31,8 @@ import java.util.List;
  */
 public class TimelineFragment extends Fragment {
     private RecyclerView rvTimeline;
-    private List<Post> posts;
+    private LinearLayoutManager linearLayoutManager;
+    private PostsAdapter postsAdapter;
     public static final String TAG = "TimelineFragment";
 
     public TimelineFragment() {
@@ -45,25 +51,63 @@ public class TimelineFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.i(TAG, "onViewCreated: ");
-        rvTimeline = view.findViewById(R.id.rvTimeline);
+        setUpRecyclerView(view);
+
+        Log.i(TAG, "onViewCreated: " + new Date());
+
         updateTimeline();
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i(TAG, "Paused Timeline fragment");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i(TAG, "resumed timeline fragment");
     }
 
     public void updateTimeline(){
+        Log.i(TAG, "timeline updated");
         ParseQuery<Post> query = ParseQuery.getQuery(Post.class);
-        query.setLimit(20);
+
+        query.setLimit(7);
+        Log.i(TAG, "last date: " + postsAdapter.getLastPostDate());
+        query.whereLessThan("createdAt", postsAdapter.getLastPostDate());
+        query.orderByDescending("createdAt");
         query.findInBackground(new FindCallback<Post>() {
             @Override
-            public void done(List<Post> objects, ParseException e) {
+            public void done(List<Post> posts, ParseException e) {
                 if(e != null){
                     Log.e(TAG, "Issue with getting posts", e);
                     return;
                 }
-                posts = objects;
-                PostsAdapter postsAdapter = new PostsAdapter(posts);
-                rvTimeline.setAdapter(postsAdapter);
-                rvTimeline.setLayoutManager(new LinearLayoutManager(getContext()));
+                if(posts.size() == 0){
+                    return;
+                }
+
+                postsAdapter.addPosts(posts);
+                postsAdapter.notifyDataSetChanged();
             }
         });
     }
+
+    public void setUpRecyclerView(View view){
+        rvTimeline = view.findViewById(R.id.rvTimeline);
+        linearLayoutManager = new LinearLayoutManager(getContext());
+        rvTimeline.setLayoutManager(linearLayoutManager);
+        postsAdapter = new PostsAdapter();
+        rvTimeline.setAdapter(postsAdapter);
+        rvTimeline.addOnScrollListener(new CustomEndlessRecyclerViewScroll(linearLayoutManager){
+            @Override
+            public void loadMore(int totalItemCount, RecyclerView recyclerView) {
+                updateTimeline();
+            }
+        });
+    }
+
 }

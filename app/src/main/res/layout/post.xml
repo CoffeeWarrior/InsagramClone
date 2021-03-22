@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         android:textSize="24sp"
         tools:text="Danny" />
-
-    <ImageView
+    <com.parse.ui.widget.ParseImageView
         android:id="@+id/ivImagePost"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

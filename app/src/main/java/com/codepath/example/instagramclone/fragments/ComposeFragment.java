@@ -92,15 +92,16 @@ public class ComposeFragment extends Fragment {
                 etDescription.setText("");
                 Toast.makeText(getContext(), "Photo posted", Toast.LENGTH_SHORT).show();
 
-                // Begin the transaction
-                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-// Replace the contents of the container with the new fragment
-                ft.replace(R.id.flContainer, new TimelineFragment());
-// or ft.add(R.id.your_placeholder, new FooFragment());
-// Complete the changes added above
-                ft.commit();
+                //the method of changing fragments had a weird issue where when I did change fragments, the selected icon would not change in the fragment
+                //so instead of changing fragments the normal way, I am simulating a click on the home fragment
+                goToTimeline();
             }
         });
+    }
+
+    private void goToTimeline(){
+        ((MainActivity)getActivity()).getBottomNavigationView().findViewById(R.id.action_home).performClick();
+
     }
 
 

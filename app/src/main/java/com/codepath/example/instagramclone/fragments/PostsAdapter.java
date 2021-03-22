@@ -12,20 +12,22 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 import com.codepath.example.instagramclone.Post;
 import com.codepath.example.instagramclone.R;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.ui.widget.ParseImageView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> {
     public static final String TAG = "PostsAdapter";
-    private List<Post> posts;
-    public PostsAdapter(List<Post> posts){
-        this.posts = posts;
+    private List<Post> posts = new ArrayList<Post>();
+    public PostsAdapter(){
     }
 
     @NonNull
@@ -41,7 +43,7 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Post post = posts.get((posts.size() -1) - position);
+        Post post = posts.get(position);
         holder.bind(post);
     }
 
@@ -50,10 +52,21 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
         return posts.size();
     }
 
+    public void addPosts(List<Post> posts) {
+        this.posts.addAll(posts);
+    }
+
+    public Date getLastPostDate(){
+        //get the most recent post date or the current date
+        if(posts.size() > 0){
+            return this.posts.get(posts.size() - 1).getCreatedAt();
+        }
+        return new Date();
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView tvUsername, tvDescription;
-        public ImageView ivImagePost;
+        public ParseImageView ivImagePost;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvUsername = itemView.findViewById(R.id.tvUsername);
@@ -66,9 +79,13 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
                 tvUsername.setText(post.getUser().fetchIfNeeded().getUsername());
             } catch (ParseException e) {
                 e.printStackTrace();
+                Log.i(TAG, "ISSUE GETTING USER");
             }
             tvDescription.setText(post.getDescription());
-            Glide.with(itemView.getContext()).load(post.getImage().getUrl()).into(ivImagePost);
+//            Glide.with(itemView.getContext()).load(post.getImage().getUrl()).into(ivImagePost);
+            ivImagePost.setParseFile(post.getImage());
+            ivImagePost.loadInBackground();
         }
     }
+
 }

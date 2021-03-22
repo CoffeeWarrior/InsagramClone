@@ -83,4 +83,7 @@ public class MainActivity extends AppCompatActivity {
         // queryPosts();
     }
 
+    public BottomNavigationView getBottomNavigationView() {
+        return bottomNavigationView;
+    }
 }
