@@ -56,12 +56,19 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
         this.posts.addAll(posts);
     }
 
+    public void addPost(Post post){ this.posts.add(post); }
+
     public Date getLastPostDate(){
         //get the most recent post date or the current date
         if(posts.size() > 0){
             return this.posts.get(posts.size() - 1).getCreatedAt();
         }
         return new Date();
+    }
+
+    public void clear(){
+        this.posts.clear();
+        notifyDataSetChanged();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -75,12 +82,7 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
         }
 
         public void bind(Post post){
-            try {
-                tvUsername.setText(post.getUser().fetchIfNeeded().getUsername());
-            } catch (ParseException e) {
-                e.printStackTrace();
-                Log.i(TAG, "ISSUE GETTING USER");
-            }
+            tvUsername.setText(post.getUsername());
             tvDescription.setText(post.getDescription());
 //            Glide.with(itemView.getContext()).load(post.getImage().getUrl()).into(ivImagePost);
             ivImagePost.setParseFile(post.getImage());

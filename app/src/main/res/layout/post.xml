@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ivPhoto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="450dp"
     android:orientation="vertical">
 
     <TextView
@@ -13,12 +13,15 @@
         android:layout_height="wrap_content"
         android:textSize="24sp"
         tools:text="Danny" />
+
     <com.parse.ui.widget.ParseImageView
         android:id="@+id/ivImagePost"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvUsername"
         android:layout_marginTop="3dp"
+        android:maxHeight="300dp"
+        android:minHeight="300dp"
         tools:layout_editor_absoluteX="133dp"
         tools:layout_editor_absoluteY="35dp"
         tools:srcCompat="@tools:sample/avatars" />

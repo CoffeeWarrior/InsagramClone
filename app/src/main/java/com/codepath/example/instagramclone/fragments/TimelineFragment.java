@@ -7,13 +7,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.codepath.example.instagramclone.CustomEndlessRecyclerViewScroll;
+import com.codepath.example.instagramclone.EndlessRecyclerViewScrollListener;
 import com.codepath.example.instagramclone.Post;
 import com.codepath.example.instagramclone.R;
 import com.parse.FindCallback;
@@ -34,6 +35,8 @@ public class TimelineFragment extends Fragment {
     private LinearLayoutManager linearLayoutManager;
     private PostsAdapter postsAdapter;
     public static final String TAG = "TimelineFragment";
+    private SwipeRefreshLayout swipeContainer;
+
 
     public TimelineFragment() {
         // Required empty public constructor
@@ -56,6 +59,14 @@ public class TimelineFragment extends Fragment {
         Log.i(TAG, "onViewCreated: " + new Date());
 
         updateTimeline();
+        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.SwipeRefreshLayout);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                postsAdapter.clear();
+                updateTimeline();
+            }
+        });
 
     }
 
@@ -75,7 +86,7 @@ public class TimelineFragment extends Fragment {
         Log.i(TAG, "timeline updated");
         ParseQuery<Post> query = ParseQuery.getQuery(Post.class);
 
-        query.setLimit(7);
+        query.setLimit(10);
         Log.i(TAG, "last date: " + postsAdapter.getLastPostDate());
         query.whereLessThan("createdAt", postsAdapter.getLastPostDate());
         query.orderByDescending("createdAt");
@@ -89,9 +100,18 @@ public class TimelineFragment extends Fragment {
                 if(posts.size() == 0){
                     return;
                 }
-
-                postsAdapter.addPosts(posts);
-                postsAdapter.notifyDataSetChanged();
+                swipeContainer.setRefreshing(false);
+                int items = postsAdapter.getItemCount();
+                for(Post post:posts){
+                    try {
+                        post.setUsername(post.getUser().fetchIfNeeded().getUsername());
+                        postsAdapter.addPost(post);
+                        postsAdapter.notifyItemInserted(++items);
+                    } catch (ParseException parseException) {
+                        parseException.printStackTrace();
+                    }
+                    Log.i(TAG, "username: " + post.getUsername());
+                }
             }
         });
     }
@@ -102,9 +122,10 @@ public class TimelineFragment extends Fragment {
         rvTimeline.setLayoutManager(linearLayoutManager);
         postsAdapter = new PostsAdapter();
         rvTimeline.setAdapter(postsAdapter);
-        rvTimeline.addOnScrollListener(new CustomEndlessRecyclerViewScroll(linearLayoutManager){
+        rvTimeline.addOnScrollListener(new EndlessRecyclerViewScrollListener(linearLayoutManager){
+
             @Override
-            public void loadMore(int totalItemCount, RecyclerView recyclerView) {
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 updateTimeline();
             }
         });
